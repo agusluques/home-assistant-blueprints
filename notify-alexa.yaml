@@ -2,12 +2,12 @@ blueprint:
   name: Notify Alexa (Alexa Devices)
   domain: script
   homeassistant:
-    min_version: 2025.6.0
+    min_version: "2025.6.0"
   author: agusluques
   source_url: https://github.com/agusluques/home-assistant-blueprints/blob/main/notify-alexa.yaml
   description: |-
     # Notify Alexa (Alexa Devices)
-  
+
     Send a text-to-speech message or announcement to selected Alexa devices using the Alexa Devices integration.
 
     ![Screenshot of a script created from this blueprint](https://community-assets.home-assistant.io/original/4X/7/d/3/7d34f55cf1de45c638a98cc6704a4e5b7ac05a77.png)
@@ -26,6 +26,7 @@ blueprint:
 
     _Note_:
     SSML support depends on the integration and the selected entity's capabilities.
+
   fields:
     devices:
       name: Alexa device(s)
@@ -38,7 +39,7 @@ blueprint:
           entity:
             - domain: notify
           multiple: true
-  
+
     message:
       name: Message
       description: The message Alexa will speak. SSML markup may be supported.
@@ -46,7 +47,7 @@ blueprint:
       selector:
         text:
           multiline: true
-  
+
     type:
       name: Notification type
       description: Choose TTS without a chime or Announce with a chime.
@@ -58,12 +59,12 @@ blueprint:
               value: tts
             - label: Announce (with chime)
               value: announce
-  
+
   variables:
     selected_devices: "{{ devices | default([]) }}"
     notification_type: "{{ type | default('tts') }}"
     notification_message: "{{ message }}"
-  
+
   sequence:
     - variables:
         target_entities: >-
@@ -86,17 +87,4 @@ blueprint:
               | list
             %}
           {% endif %}
-          {{ ns.entities | unique | list | to_json }}
-  
-    - if:
-        - condition: template
-          value_template: "{{ (target_entities | from_json) | length > 0 }}"
-      then:
-        - action: notify.send_message
-          target:
-            entity_id: "{{ target_entities | from_json }}"
-          data:
-            message: "{{ notification_message }}"
-      else:
-        - stop: No matching Speak or Announce entities found for the selected devices.
-          error: true
+          {{ ns.entities | unique

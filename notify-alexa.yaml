@@ -1,6 +1,11 @@
 blueprint:
   name: Notify Alexa (Alexa Devices)
   author: Agustin Luques
+  domain: script
+  homeassistant:
+    min_version: 2025.6.0
+  author: agusluques
+  source_url: https://github.com/agusluques/home-assistant-blueprints/edit/main/notify-alexa.yaml
   description: |-
     Send a text-to-speech message or announcement to selected Alexa devices using the Alexa Devices integration.
 

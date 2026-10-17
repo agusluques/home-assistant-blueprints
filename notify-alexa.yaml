@@ -27,64 +27,77 @@ blueprint:
     _Note_:
     SSML support depends on the integration and the selected entity's capabilities.
 
-  fields:
-    devices:
-      name: Alexa device(s)
-      description: Select one or more devices. Leave empty to target all matching Alexa devices.
-      required: false
-      selector:
-        device:
-          filter:
-            - integration: alexa_devices
-          entity:
-            - domain: notify
-          multiple: true
+fields:
+  devices:
+    name: Alexa device(s)
+    description: Select one or more devices. Leave empty to target all matching Alexa devices.
+    required: false
+    selector:
+      device:
+        filter:
+          - integration: alexa_devices
+        entity:
+          - domain: notify
+        multiple: true
 
-    message:
-      name: Message
-      description: The message Alexa will speak. SSML markup may be supported.
-      required: true
-      selector:
-        text:
-          multiline: true
+  message:
+    name: Message
+    description: The message Alexa will speak. SSML markup may be supported.
+    required: true
+    selector:
+      text:
+        multiline: true
 
-    type:
-      name: Notification type
-      description: Choose TTS without a chime or Announce with a chime.
-      required: true
-      selector:
-        select:
-          options:
-            - label: TTS (no chime)
-              value: tts
-            - label: Announce (with chime)
-              value: announce
+  type:
+    name: Notification type
+    description: Choose TTS without a chime or Announce with a chime.
+    required: true
+    default: tts
+    selector:
+      select:
+        options:
+          - label: TTS (no chime)
+            value: tts
+          - label: Announce (with chime)
+            value: announce
 
-  variables:
-    selected_devices: "{{ devices | default([]) }}"
-    notification_type: "{{ type | default('tts') }}"
-    notification_message: "{{ message }}"
+variables:
+  selected_devices: "{{ devices | default([]) }}"
+  notification_type: "{{ type | default('tts') }}"
+  notification_message: "{{ message }}"
 
-  sequence:
-    - variables:
-        target_entities: >-
-          {% set ns = namespace(entities=[]) %}
-          {% set suffix = '_speak' if notification_type == 'tts' else '_announce' %}
-          {% if selected_devices | length > 0 %}
-            {% for device in selected_devices %}
-              {% set ns.entities = ns.entities + (
-                device_entities(device)
-                | select('match', '^notify\\.')
-                | select('search', suffix ~ '$')
-                | list
-              ) %}
-            {% endfor %}
-          {% else %}
-            {% set ns.entities =
-              integration_entities('alexa_devices')
+sequence:
+  - variables:
+      target_entities: >-
+        {% set ns = namespace(entities=[]) %}
+        {% set suffix = '_speak' if notification_type == 'tts' else '_announce' %}
+        {% if selected_devices | length > 0 %}
+          {% for device in selected_devices %}
+            {% set ns.entities = ns.entities + (
+              device_entities(device)
               | select('match', '^notify\\.')
               | select('search', suffix ~ '$')
               | list
-            %}
-          {% endif %}
-          {{ ns.entities | unique
+            ) %}
+          {% endfor %}
+        {% else %}
+          {% set ns.entities =
+            integration_entities('alexa_devices')
+            | select('match', '^notify\\.')
+            | select('search', suffix ~ '$')
+            | list
+          %}
+        {% endif %}
+        {{ ns.entities | unique | list }}
+
+  - condition: template
+    value_template: "{{ target_entities | length > 0 }}"
+
+  - action: notify.send_message
+    target:
+      entity_id: "{{ target_entities }}"
+    data:
+      message: "{{ notification_message }}"
+
+mode: queued
+max: 10

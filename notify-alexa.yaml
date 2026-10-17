@@ -40,7 +40,6 @@ blueprint:
     message:
       name: Message
       description: The message Alexa will speak. SSML markup may be supported.
-      required: true
       selector:
         text:
           multiline: true

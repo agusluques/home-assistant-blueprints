@@ -99,5 +99,3 @@ sequence:
     data:
       message: "{{ notification_message }}"
 
-mode: queued
-max: 10

@@ -1,0 +1,98 @@
+blueprint:
+  name: Notify Alexa (Alexa Devices)
+  author: Agustin Luques
+  description: |-
+    Send a text-to-speech message or announcement to selected Alexa devices using the Alexa Devices integration.
+
+    ## Alexa SSML Reference:
+    https://developer.amazon.com/en-US/docs/alexa/custom-skills/speech-synthesis-markup-language-ssml-reference.html
+
+    ## Entity matching:
+    The script looks for entities ending in _speak or _announce. If you have customized entity IDs that don't follow this naming pattern, the matching template will need adjusting.
+
+    ## Device selection:
+    Select Alexa devices that expose notify entities. Leave the selection empty to target all matching Alexa devices.
+
+    ## Notification types:
+    TTS speaks without a notification chime. Announce plays a chime before speaking.
+
+    _Note_:
+    SSML support depends on the integration and the selected entity's capabilities.
+  domain: script
+  input:
+    devices:
+      name: Alexa device(s)
+      description: Select one or more devices. Leave empty to target all matching Alexa devices.
+      default: []
+      selector:
+        device:
+          filter:
+            - integration: alexa_devices
+          entity:
+            - domain: notify
+          multiple: true
+
+    message:
+      name: Message
+      description: The message Alexa will speak. SSML markup may be supported.
+      required: true
+      selector:
+        text:
+          multiline: true
+
+    type:
+      name: Notification type
+      description: Choose TTS without a chime or Announce with a chime.
+      default: tts
+      selector:
+        select:
+          options:
+            - label: TTS (no chime)
+              value: tts
+            - label: Announce (with chime)
+              value: announce
+
+variables:
+  selected_devices: !input devices
+  notification_type: !input type
+  notification_message: !input message
+
+sequence:
+  - variables:
+      target_entities: >-
+        {% set ns = namespace(entities=[]) %}
+        {% set suffix = '_speak' if notification_type == 'tts' else '_announce' %}
+        {% if selected_devices | length > 0 %}
+          {% for device in selected_devices %}
+            {% set ns.entities = ns.entities + (
+              device_entities(device)
+              | select('match', '^notify\\.')
+              | select('search', suffix ~ '$')
+              | list
+            ) %}
+          {% endfor %}
+        {% else %}
+          {% set ns.entities =
+            integration_entities('alexa_devices')
+            | select('match', '^notify\\.')
+            | select('search', suffix ~ '$')
+            | list
+          %}
+        {% endif %}
+        {{ ns.entities | unique | list | to_json }}
+
+  - if:
+      - condition: template
+        value_template: "{{ (target_entities | from_json) | length > 0 }}"
+    then:
+      - action: notify.send_message
+        target:
+          entity_id: "{{ target_entities | from_json }}"
+        data:
+          message: "{{ notification_message }}"
+    else:
+      - stop: No matching Speak or Announce entities found for the selected devices.
+        error: true
+
+mode: parallel
+max: 10

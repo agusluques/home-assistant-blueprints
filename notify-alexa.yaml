@@ -62,7 +62,9 @@ fields:
             value: announce
 
 variables:
-  selected_devices: "{{ devices | default([]) }}"
+  selected_devices: >-
+    {% set d = devices | default([], true) %}
+    {{ [d] if d is string else d }}
   notification_type: "{{ type | default('tts') }}"
   notification_message: "{{ message }}"
 

@@ -90,15 +90,15 @@ sequence:
             | list
           %}
         {% endif %}
-        {{ ns.entities | unique | list | to_json }}
+        {{ ns.entities | unique | list }}
 
   - if:
       - condition: template
-        value_template: "{{ (target_entities | from_json) | length > 0 }}"
+        value_template: "{{ target_entities | length > 0 }}"
     then:
       - action: notify.send_message
         target:
-          entity_id: "{{ target_entities | from_json }}"
+          entity_id: "{{ target_entities }}"
         data:
           message: "{{ notification_message }}"
     else:

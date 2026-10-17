@@ -98,6 +98,3 @@ sequence:
     else:
       - stop: No matching Speak or Announce entities found for the selected devices.
         error: true
-
-mode: parallel
-max: 10

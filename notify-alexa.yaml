@@ -88,14 +88,17 @@ sequence:
             | list
           %}
         {% endif %}
-        {{ ns.entities | unique | list }}
+        {{ ns.entities | unique | list | to_json }}
 
-  - condition: template
-    value_template: "{{ target_entities | length > 0 }}"
-
-  - action: notify.send_message
-    target:
-      entity_id: "{{ target_entities }}"
-    data:
-      message: "{{ notification_message }}"
-
+  - if:
+      - condition: template
+        value_template: "{{ (target_entities | from_json) | length > 0 }}"
+    then:
+      - action: notify.send_message
+        target:
+          entity_id: "{{ target_entities | from_json }}"
+        data:
+          message: "{{ notification_message }}"
+    else:
+      - stop: No matching Speak or Announce entities found for the selected devices.
+        error: true

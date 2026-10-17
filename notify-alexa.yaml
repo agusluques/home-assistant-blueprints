@@ -6,18 +6,22 @@ blueprint:
   author: agusluques
   source_url: https://github.com/agusluques/home-assistant-blueprints/blob/main/notify-alexa.yaml
   description: |-
+    # Notify Alexa (Alexa Devices)
+  
     Send a text-to-speech message or announcement to selected Alexa devices using the Alexa Devices integration.
 
-    ## Alexa SSML Reference:
+    ![Screenshot of a script created from this blueprint](https://community-assets.home-assistant.io/original/4X/7/d/3/7d34f55cf1de45c638a98cc6704a4e5b7ac05a77.png)
+
+    #### Alexa SSML Reference:
     https://developer.amazon.com/en-US/docs/alexa/custom-skills/speech-synthesis-markup-language-ssml-reference.html
 
-    ## Entity matching:
+    #### Entity matching:
     The script looks for entities ending in _speak or _announce. If you have customized entity IDs that don't follow this naming pattern, the matching template will need adjusting.
 
-    ## Device selection:
+    #### Device selection:
     Select Alexa devices that expose notify entities. Leave the selection empty to target all matching Alexa devices.
 
-    ## Notification types:
+    #### Notification types:
     TTS speaks without a notification chime. Announce plays a chime before speaking.
 
     _Note_:
